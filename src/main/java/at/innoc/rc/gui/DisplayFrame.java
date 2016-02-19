@@ -10,17 +10,13 @@ import java.awt.event.ActionListener;
  */
 public class DisplayFrame extends JFrame{
 
-    /**
-     * If one presses this button, the frame will initialize
-     * it's content and extend to fullscreen
-     */
-    private JButton theButton;
-
-    public DisplayFrame(){
+    public DisplayFrame(GraphicsDevice screen){
         super("Robot Timer"); //set title
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         setUndecorated(true);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+        screen.setFullScreenWindow(this);
     }
 
     private void createWidgets(){
