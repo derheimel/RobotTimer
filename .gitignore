@@ -2,6 +2,8 @@
 
 config.ini
 
+*.sql
+
 ### Maven ###
 target/
 pom.xml.tag
