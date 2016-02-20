@@ -12,8 +12,6 @@ import java.awt.*;
  */
 public class OperatorFrame extends JFrame{
 
-    private DisplayFrame diplay;
-
     private JComboBox<Competition> cbComps;
     private JList<Bot> jlBots;
     private JToggleButton btnReady;
@@ -22,18 +20,20 @@ public class OperatorFrame extends JFrame{
 
     private JPanel pnlButtons;
     private Container cp = getContentPane();
+    private OperatorListener opListener;
 
 
     public OperatorFrame(DisplayFrame display){
         super("Robot Timer Operator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.opListener = new OperatorListener(this, display);
         createWidgets();
         addWidgets();
+        pack();
+        setLocationRelativeTo(null);
     }
 
     private void createWidgets(){
-        OperatorListener opListener = new OperatorListener(this);
-
         cbComps = new JComboBox<>();
         cbComps.setActionCommand("cbComps");
         cbComps.addActionListener(opListener);
@@ -41,10 +41,23 @@ public class OperatorFrame extends JFrame{
         jlBots = new JList<>();
         jlBots.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jlBots.addListSelectionListener(opListener);
+
+        btnReady = new JToggleButton("Ready");
+        btnReady.setActionCommand("btnReady");
+        btnReady.addActionListener(opListener);
+
+        btnInvalidate = new JButton("Invalidate");
+        btnInvalidate.setActionCommand("btnInvalidate");
+        btnInvalidate.addActionListener(opListener);
+
+        btnConfirm = new JButton("Confirm");
+        btnConfirm.setActionCommand("btnConfirm");
+        btnConfirm.addActionListener(opListener);
+
+        opListener.initialize(cbComps);
     }
 
     private void addWidgets(){
 
     }
-
 }
