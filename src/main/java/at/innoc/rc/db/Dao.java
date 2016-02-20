@@ -9,6 +9,8 @@ public interface Dao {
 
     public boolean saveResult(Result result);
 
-    public Competition[] getLineFollowerComps();
+    public List<Competition> getLineFollowerComps();
+
+    public List<Bot> getBotsByCompetition(Competition comp);
 
 }

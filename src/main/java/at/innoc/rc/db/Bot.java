@@ -19,6 +19,11 @@ public class Bot {
         this.name = name;
     }
 
+    @Override
+    public String toString(){
+        return this.startNr + " " + this.name;
+    }
+
     public int getUid() {
         return uid;
     }

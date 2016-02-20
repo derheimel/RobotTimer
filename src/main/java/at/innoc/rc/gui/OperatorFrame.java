@@ -5,6 +5,7 @@ import at.innoc.rc.db.Competition;
 import at.innoc.rc.db.Dao;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 
 /**
@@ -14,12 +15,16 @@ public class OperatorFrame extends JFrame{
 
     private JComboBox<Competition> cbComps;
     private JList<Bot> jlBots;
+    private JScrollPane spBots;
     private JToggleButton btnReady;
     private JButton btnInvalidate;
     private JButton btnConfirm;
+    private JLabel lblTries;
 
     private JPanel pnlButtons;
-    private Container cp = getContentPane();
+    private JPanel pnlButtonsWrapper;
+    private JPanel pnlTries;
+    private Container contentPane = getContentPane();
     private OperatorListener opListener;
 
 
@@ -42,6 +47,10 @@ public class OperatorFrame extends JFrame{
         jlBots.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jlBots.addListSelectionListener(opListener);
 
+        spBots = new JScrollPane();
+        spBots.setViewportView(jlBots);
+        spBots.setPreferredSize(new Dimension(200, 400));
+
         btnReady = new JToggleButton("Ready");
         btnReady.setActionCommand("btnReady");
         btnReady.addActionListener(opListener);
@@ -54,10 +63,39 @@ public class OperatorFrame extends JFrame{
         btnConfirm.setActionCommand("btnConfirm");
         btnConfirm.addActionListener(opListener);
 
+        lblTries = new JLabel("-");
+        lblTries.setFont(lblTries.getFont().deriveFont(Font.BOLD, 30));
+
+        pnlButtons = new JPanel();
+        pnlButtonsWrapper = new JPanel();
+        pnlTries = new JPanel();
+
         opListener.initialize(cbComps);
     }
 
     private void addWidgets(){
+        pnlButtons.setLayout(new GridLayout(2, 3));
+        pnlButtons.add(btnReady);
+        pnlButtons.add(btnInvalidate);
+        pnlButtons.add(btnConfirm);
+        pnlButtons.setMaximumSize(pnlButtons.getPreferredSize());
 
+        Border b = BorderFactory.createEtchedBorder();
+        pnlTries.setBorder(BorderFactory.createTitledBorder(b, "TRIES"));
+        pnlTries.add(lblTries);
+
+        pnlButtonsWrapper.setLayout(new BoxLayout(pnlButtonsWrapper, BoxLayout.PAGE_AXIS));
+        pnlButtonsWrapper.add(pnlButtons);
+        pnlButtonsWrapper.add(Box.createVerticalGlue());
+        pnlButtonsWrapper.add(pnlTries);
+
+        contentPane.setLayout(new BorderLayout());
+        contentPane.add(cbComps, BorderLayout.PAGE_START);
+        contentPane.add(spBots, BorderLayout.CENTER);
+        contentPane.add(pnlButtonsWrapper, BorderLayout.LINE_END);
+    }
+
+    public JList<Bot> getJlBots() {
+        return jlBots;
     }
 }

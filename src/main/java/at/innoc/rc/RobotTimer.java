@@ -42,6 +42,7 @@ public class RobotTimer {
 
                 opFrame.setVisible(true);
                 dFrame.setVisible(true);
+                dFrame.setAlwaysOnTop(true);
             }
         });
     }
