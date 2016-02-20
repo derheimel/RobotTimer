@@ -23,19 +23,24 @@ public class OperatorFrame extends JFrame{
     private JPanel pnlButtons;
     private Container cp = getContentPane();
 
-    private Dao db;
 
-
-    public OperatorFrame(DisplayFrame display, Dao db){
+    public OperatorFrame(DisplayFrame display){
         super("Robot Timer Operator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.db = db;
         createWidgets();
         addWidgets();
     }
 
     private void createWidgets(){
-        cbComps = new JComboBox<>(db.getLineFollowerComps());
+        OperatorListener opListener = new OperatorListener(this);
+
+        cbComps = new JComboBox<>();
+        cbComps.setActionCommand("cbComps");
+        cbComps.addActionListener(opListener);
+
+        jlBots = new JList<>();
+        jlBots.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jlBots.addListSelectionListener(opListener);
     }
 
     private void addWidgets(){

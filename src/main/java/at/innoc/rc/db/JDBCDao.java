@@ -109,6 +109,7 @@ public class JDBCDao implements Dao {
             ResultSet rs = pst.executeQuery();
 
             List<Competition> tmpComps = new ArrayList<>();
+            tmpComps.add(Competition.FIRST_ITEM);
 
             while(rs.next()){
                 Competition t = new Competition(rs.getInt(COMP_UID), rs.getString(COMP_NAME));

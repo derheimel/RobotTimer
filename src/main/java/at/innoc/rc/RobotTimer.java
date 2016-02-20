@@ -37,10 +37,8 @@ public class RobotTimer {
                     exit("Screen " + screen + " not found");
                 }
 
-                Dao db = new JDBCDao();
-
                 DisplayFrame dFrame = new DisplayFrame(screens[screen]);
-                OperatorFrame opFrame = new OperatorFrame(dFrame, db);
+                OperatorFrame opFrame = new OperatorFrame(dFrame);
 
                 opFrame.setVisible(true);
                 dFrame.setVisible(true);

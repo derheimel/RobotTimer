@@ -8,6 +8,7 @@ public class Competition {
     private int uid; //pk_comp
     private String name; //comp_name
 
+    public static final Competition FIRST_ITEM = new Competition(-1, "SELECT");
 
     public Competition(int uid, String name) {
         this.uid = uid;
