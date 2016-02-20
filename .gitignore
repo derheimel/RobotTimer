@@ -6,7 +6,8 @@ VirtualLightBarrier.java
 *.sql
 
 ### Maven ###
-target/
+src/main/java/resources/
+
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup

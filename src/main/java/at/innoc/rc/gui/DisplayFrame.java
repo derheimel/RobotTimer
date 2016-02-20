@@ -21,7 +21,11 @@ public class DisplayFrame extends JFrame{
 
     private Font headFont;
 
-    public static final String DEFAULT_HEAD = "<html><font color=#4A83DE><i>ROBOT CHALLENGE 2016</i></font></html>";
+    public static final Font DEFAULT_FONT = Font.getFont("")
+
+    public static final String DEFAULT_HEAD = "<html><font color=#4A83DE>ROBOT CHALLENGE 2016</font></html>";
+    public static final String PAUSE = "PAUSE";
+    public static final String READY = "READY";
 
     public DisplayFrame(GraphicsDevice screen, Font headFont){
         super("Robot Timer"); //set title
@@ -40,6 +44,9 @@ public class DisplayFrame extends JFrame{
     private void createWidgets(){
         lblBotName = new JLabel(DEFAULT_HEAD);
         lblBotName.setFont(headFont);
+
+        lblStatus = new JLabel(PAUSE);
+
     }
 
     private void addWidgets(){
