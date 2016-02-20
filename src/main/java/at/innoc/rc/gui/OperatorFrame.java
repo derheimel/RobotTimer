@@ -2,7 +2,6 @@ package at.innoc.rc.gui;
 
 import at.innoc.rc.db.Bot;
 import at.innoc.rc.db.Competition;
-import at.innoc.rc.db.Dao;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -83,6 +82,7 @@ public class OperatorFrame extends JFrame{
         Border b = BorderFactory.createEtchedBorder();
         pnlTries.setBorder(BorderFactory.createTitledBorder(b, "TRIES"));
         pnlTries.add(lblTries);
+        pnlTries.setSize(150, 150);
 
         pnlButtonsWrapper.setLayout(new BoxLayout(pnlButtonsWrapper, BoxLayout.PAGE_AXIS));
         pnlButtonsWrapper.add(pnlButtons);
@@ -97,5 +97,9 @@ public class OperatorFrame extends JFrame{
 
     public JList<Bot> getJlBots() {
         return jlBots;
+    }
+
+    public JLabel getLblTries() {
+        return lblTries;
     }
 }

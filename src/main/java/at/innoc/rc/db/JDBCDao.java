@@ -2,7 +2,6 @@ package at.innoc.rc.db;
 
 import at.innoc.rc.RobotTimer;
 
-import javax.swing.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
@@ -113,10 +112,10 @@ public class JDBCDao implements Dao {
         try{
             PreparedStatement pst = conn.prepareStatement(
                     "select " + COMP_UID + ", " + COMP_NAME + " " +
-                    "from comp where " + COMP_COMPCLASS + " = 1 " +
-                    "and " + COMP_EVENT + " = " + props.getProperty("event") + " " +
-                    "and " + COMP_NAME + " like '%Follower%' " +
-                    "order by " + COMP_NAME);
+                            "from comp where " + COMP_COMPCLASS + " = 1 " +
+                            "and " + COMP_EVENT + " = " + props.getProperty("event") + " " +
+                            "and " + COMP_NAME + " like '%Follower%' " +
+                            "order by " + COMP_NAME);
 
             ResultSet rs = pst.executeQuery();
 
@@ -141,12 +140,12 @@ public class JDBCDao implements Dao {
         try{
             PreparedStatement pst = conn.prepareStatement(
                     "select " + BOT_UID + ", " + BOT_STARTNR + ", " + TEAM_COUNTRY + ", " + BOT_NAME + " " +
-                    "from bot_comp join bot join team " +
-                    "on team." + TEAM_UID + " = bot." + BOT_TEAM + " " +
-                    "and bot." + BOT_UID + " = bot_comp." + BOTCOMP_BOT_UID + " " +
-                    "where " + BOTCOMP_COMP_UID + " = " + comp.getUid() + " " +
-                    "and " + BOT_SOFTSTORNO + " = 0 " +
-                    "order by " + BOT_STARTNR
+                            "from bot_comp join bot join team " +
+                            "on team." + TEAM_UID + " = bot." + BOT_TEAM + " " +
+                            "and bot." + BOT_UID + " = bot_comp." + BOTCOMP_BOT_UID + " " +
+                            "where " + BOTCOMP_COMP_UID + " = " + comp.getUid() + " " +
+                            "and " + BOT_SOFTSTORNO + " = 0 " +
+                            "order by " + BOT_STARTNR
             );
 
             ResultSet rs = pst.executeQuery();

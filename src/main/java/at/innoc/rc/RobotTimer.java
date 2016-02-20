@@ -1,12 +1,11 @@
 package at.innoc.rc;
 
-import at.innoc.rc.db.Dao;
-import at.innoc.rc.db.JDBCDao;
 import at.innoc.rc.gui.DisplayFrame;
 import at.innoc.rc.gui.OperatorFrame;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 /**
  * Created by Aaron on 30.10.2015.
@@ -31,13 +30,23 @@ public class RobotTimer {
                     e.printStackTrace();
                 }
 
-                GraphicsDevice[] screens = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                GraphicsDevice[] screens = ge.getScreenDevices();
+                Font freeride = null;
+                try {
+                    freeride = Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream("fonts/Freeride.otf")).deriveFont(Font.BOLD + Font.ITALIC, 160);
+                    ge.registerFont(freeride);
+                } catch (FontFormatException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 if(screen >= screens.length){
                     exit("Screen " + screen + " not found");
                 }
 
-                DisplayFrame dFrame = new DisplayFrame(screens[screen]);
+                DisplayFrame dFrame = new DisplayFrame(screens[screen], freeride);
                 OperatorFrame opFrame = new OperatorFrame(dFrame);
 
                 opFrame.setVisible(true);

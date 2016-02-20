@@ -8,6 +8,7 @@ import at.innoc.rc.db.JDBCDao;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -37,7 +38,22 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
     public void actionPerformed(ActionEvent e) {
         switch(e.getActionCommand()){
             case "cbComps": onCompetitionSelection(e.getSource()); break;
+            case "btnReady": onReady(e.getSource()); break;
         }
+    }
+
+    private void onReady(Object source){
+        JToggleButton btnReady = (JToggleButton) source;
+
+        if(btnReady.isSelected()){
+            btnReady.setBackground(null);
+            //TODO: stuff
+        }
+        else{
+            btnReady.setBackground(Color.GREEN);
+        }
+
+
     }
 
     private void onCompetitionSelection(Object source){
@@ -53,6 +69,14 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
+        onBotSelection(e.getSource());
+    }
 
+    private void onBotSelection(Object source){
+        JList<Bot> jlBots = (JList<Bot>) source;
+        Bot selectedBot = jlBots.getSelectedValue();
+        JLabel lblTries = opFrame.getLblTries();
+//        lblTries.setText(selectedBot.get);
+        //TODO: stuff
     }
 }

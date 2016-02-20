@@ -7,6 +7,7 @@ public class Bot {
 
     private int uid; //pk_bot
     private int startNr; //bot_startnummer
+    private int tries; //
     private String country; //via team_pk_team -> team_land
     private String name; //bot_name
 
