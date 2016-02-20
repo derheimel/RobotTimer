@@ -1,5 +1,7 @@
 package at.innoc.rc;
 
+import at.innoc.rc.db.Dao;
+import at.innoc.rc.db.JDBCDao;
 import at.innoc.rc.gui.DisplayFrame;
 import at.innoc.rc.gui.OperatorFrame;
 
@@ -35,8 +37,10 @@ public class RobotTimer {
                     exit("Screen " + screen + " not found");
                 }
 
+                Dao db = new JDBCDao();
+
                 DisplayFrame dFrame = new DisplayFrame(screens[screen]);
-                OperatorFrame opFrame = new OperatorFrame(dFrame);
+                OperatorFrame opFrame = new OperatorFrame(dFrame, db);
 
                 opFrame.setVisible(true);
                 dFrame.setVisible(true);
@@ -44,7 +48,7 @@ public class RobotTimer {
         });
     }
 
-    private static void exit(String reason){
+    public static void exit(String reason){
         System.err.println(reason + ", program exits now.");
         System.exit(-1);
     }
