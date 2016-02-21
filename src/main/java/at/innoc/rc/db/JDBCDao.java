@@ -41,13 +41,9 @@ public class JDBCDao implements Dao {
     private final String TEAM_COUNTRY = "team_land";
 
     public JDBCDao(){
-        String file = "config.ini";
+        this.props = RobotTimer.getProperties();
         try {
-            this.props = getProperties(file);
             this.conn = getConnection();
-        } catch (IOException e) {
-            e.printStackTrace();
-            RobotTimer.exit("Couldn't read " + file);
         }catch (ClassNotFoundException e) {
             e.printStackTrace();
             RobotTimer.exit("Couldn't load JDBC driver");
@@ -55,12 +51,6 @@ public class JDBCDao implements Dao {
             e.printStackTrace();
             RobotTimer.exit("Couldn't connect to DB");
         }
-    }
-
-    private Properties getProperties(String file) throws IOException{
-        Properties props = new Properties();
-        props.load(new FileInputStream(file));
-        return props;
     }
 
     private Connection getConnection() throws ClassNotFoundException, SQLException{

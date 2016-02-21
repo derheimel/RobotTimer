@@ -35,12 +35,6 @@
             <version>5.1.38</version>
         </dependency>
 
-        <dependency>
-            <groupId>net.coobird</groupId>
-            <artifactId>thumbnailator</artifactId>
-            <version>[0.4, 0.5)</version>
-        </dependency>
-
 
     </dependencies>
 

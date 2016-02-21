@@ -5,7 +5,9 @@ import at.innoc.rc.gui.OperatorFrame;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Created by Aaron on 30.10.2015.
@@ -45,9 +47,13 @@ public class RobotTimer {
                 if(screen >= screens.length){
                     exit("Screen " + screen + " not found");
                 }
+                Properties props = getProperties();
 
                 DisplayFrame dFrame = new DisplayFrame(screens[screen], freeride);
                 OperatorFrame opFrame = new OperatorFrame(dFrame);
+
+                TriggerListener tl = new TriggerListener(props.getProperty("serial"));
+                new Thread(tl).start();
 
                 opFrame.setVisible(true);
                 dFrame.setVisible(true);
@@ -59,6 +65,17 @@ public class RobotTimer {
     public static void exit(String reason){
         System.err.println(reason + ", program exits now.");
         System.exit(-1);
+    }
+
+    public static Properties getProperties(){
+        Properties props = new Properties();
+        try {
+            props.load(new FileInputStream("config.ini"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            exit("Couldn't read config file");
+        }
+        return props;
     }
 
 }

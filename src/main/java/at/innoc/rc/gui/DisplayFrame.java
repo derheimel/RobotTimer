@@ -28,11 +28,6 @@ public class DisplayFrame extends JFrame{
     private Font headFont;
     private Font defaultFont;
 
-    public static final String DEFAULT_HEAD = "<html><font color=#4A83DE>ROBOT CHALLENGE 2016</font></html>";
-    public static final String PAUSE = "PAUSE";
-    public static final String READY = "READY";
-    public static final String TRACK_BEST = "Track record: ";
-    public static final String BOT_BEST = "Current bot record: ";
 
     class FlagPanel extends JPanel{
 
@@ -41,8 +36,11 @@ public class DisplayFrame extends JFrame{
         @Override
         protected void paintComponent(Graphics g){
             super.paintComponent(g);
+            if(flag == null) return;
 
-            g.drawImage(flag, 0, 0, null);
+            int x = (getWidth() - flag.getWidth()) / 2;
+            int y = 0;
+            g.drawImage(flag, x, y, null);
         }
 
     }
@@ -66,16 +64,24 @@ public class DisplayFrame extends JFrame{
     private void createWidgets(){
         int height = screen.getDisplayMode().getHeight();
         int width = screen.getDisplayMode().getWidth();
+        Dimension topBottomDim = new Dimension(width, height / 4);
+        Dimension flagDim = new Dimension(width / 3, (int)topBottomDim.getHeight());
+        int borderSize = 5;
+        Border border = BorderFactory.createLineBorder(Color.BLACK, borderSize);
+        Border flagBorder = BorderFactory.createMatteBorder(0, borderSize * 2, 0, 0, Color.BLACK);
 
-        lblBotName = new JLabel(DEFAULT_HEAD);
+        lblBotName = new JLabel();
         lblBotName.setFont(headFont);
         lblBotName.setHorizontalAlignment(SwingConstants.CENTER);
-        lblBotName.setVerticalAlignment(SwingConstants.CENTER);
+//        lblBotName.setVerticalAlignment(SwingConstants.CENTER);
+        lblBotName.setPreferredSize(topBottomDim);
+        lblBotName.setBorder(border);
 
-        lblStatus = new JLabel(PAUSE);
+        lblStatus = new JLabel();
         lblStatus.setFont(defaultFont.deriveFont(Font.BOLD, 400));
         lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
         lblStatus.setVerticalAlignment(SwingConstants.CENTER);
+        lblStatus.setOpaque(true);
 
         lblTrackBestTime = new JLabel();
         lblTrackBestTime.setFont(defaultFont);
@@ -85,18 +91,20 @@ public class DisplayFrame extends JFrame{
 
         lblCountryShort = new JLabel();
         lblCountryShort.setFont(defaultFont);
+        lblCountryShort.setVerticalAlignment(SwingConstants.CENTER);
 
         pnlCenter = new JPanel();
-        pnlCenter.setMaximumSize(new Dimension(width, height / 2));
+        pnlCenter.setBorder(border);
 
         pnlInfo = new JPanel();
 
         pnlFlag = new FlagPanel();
-        pnlFlag.setPreferredSize(new Dimension(width / 3, height / 4));
-        pnlFlag.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        pnlFlag.setPreferredSize(flagDim);
+        pnlFlag.setMaximumSize(flagDim);
+        pnlFlag.setBorder(flagBorder);
 
         pnlBottom = new JPanel();
-        pnlBottom.setPreferredSize(new Dimension(width, height / 4));
+        pnlBottom.setBorder(border);
 
     }
 
@@ -110,23 +118,57 @@ public class DisplayFrame extends JFrame{
         pnlInfo.add(lblTrackBestTime);
         pnlInfo.add(lblBotBestTime);
 
-        pnlBottom.setLayout(new GridLayout(1, 3));
+        pnlBottom.setLayout(new BoxLayout(pnlBottom, BoxLayout.LINE_AXIS));
         pnlBottom.add(pnlInfo);
+        pnlBottom.add(Box.createHorizontalGlue());
+        pnlBottom.add(lblCountryShort);
         pnlBottom.add(pnlFlag);
-
-//        JButton test = new JButton("TEST");
-//        test.setFont(test.getFont().deriveFont(Font.BOLD, 100));
-//
-//        pnlBottom.add(test);
 
         contentPane.add(lblBotName, BorderLayout.PAGE_START);
         contentPane.add(pnlCenter, BorderLayout.CENTER);
         contentPane.add(pnlBottom, BorderLayout.PAGE_END);
     }
 
-    protected void updateFlag(BufferedImage image){
-        pnlFlag.flag = image;
+    protected void updateFlag(BufferedImage flag){
+        int height = pnlFlag.getHeight();
+        int width = (int)(1f * flag.getWidth() / flag.getHeight() * height);
+
+        Image tmp = flag.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        BufferedImage scaledFlag = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = scaledFlag.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+
+        Dimension dim = new Dimension(width, height);
+        pnlFlag.setPreferredSize(dim);
+        pnlFlag.setMaximumSize(dim);
+        pnlFlag.flag = scaledFlag;
+        SwingUtilities.updateComponentTreeUI(this);
         pnlFlag.repaint();
-//        pnlFlag.paintComponent();
+    }
+
+    public Font getDefaultFont(){
+        return this.defaultFont;
+    }
+
+    protected JLabel getLblStatus(){
+        return this.lblStatus;
+    }
+
+    protected JLabel getLblBotName(){
+        return this.lblBotName;
+    }
+
+    protected JLabel getLblTrackBestTime(){
+        return this.lblTrackBestTime;
+    }
+
+    protected JLabel getLblBotBestTime(){
+        return this.lblBotBestTime;
+    }
+
+    protected JLabel getLblCountryShort(){
+        return this.lblCountryShort;
     }
 }
