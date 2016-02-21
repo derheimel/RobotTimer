@@ -53,6 +53,7 @@ public class OperatorFrame extends JFrame{
         btnReady = new JToggleButton("Ready");
         btnReady.setActionCommand("btnReady");
         btnReady.addActionListener(opListener);
+        btnReady.setOpaque(true);
 
         btnInvalidate = new JButton("Invalidate");
         btnInvalidate.setActionCommand("btnInvalidate");

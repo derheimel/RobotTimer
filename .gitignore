@@ -3,10 +3,9 @@
 config.ini
 VirtualLightBarrier.java
 
-*.sql
+*.otf
 
 ### Maven ###
-src/main/java/resources/
 
 pom.xml.tag
 pom.xml.releaseBackup
