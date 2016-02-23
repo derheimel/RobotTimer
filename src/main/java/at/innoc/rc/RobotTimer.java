@@ -2,6 +2,7 @@ package at.innoc.rc;
 
 import at.innoc.rc.gui.DisplayFrame;
 import at.innoc.rc.gui.OperatorFrame;
+import at.innoc.rc.gui.OperatorListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +18,12 @@ public class RobotTimer {
     public static void main(final String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+                    e.printStackTrace();
+                }
+
                 int screen = 0;
                 if(args.length > 0) {
                     try {
@@ -24,12 +31,6 @@ public class RobotTimer {
                     } catch (NumberFormatException e) {
                         exit("Invalid argument: \"" + args[0] + "\"");
                     }
-                }
-
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-                    e.printStackTrace();
                 }
 
                 GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -52,7 +53,7 @@ public class RobotTimer {
                 DisplayFrame dFrame = new DisplayFrame(screens[screen], freeride);
                 OperatorFrame opFrame = new OperatorFrame(dFrame);
 
-                TriggerListener tl = new TriggerListener(props.getProperty("serial"));
+                TriggerListener tl = new TriggerListener(props.getProperty("serial"), opFrame.getOpListener());
                 new Thread(tl).start();
 
                 opFrame.setVisible(true);

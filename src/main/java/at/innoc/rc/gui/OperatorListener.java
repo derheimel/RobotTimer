@@ -1,6 +1,5 @@
 package at.innoc.rc.gui;
 
-import at.innoc.rc.RobotTimer;
 import at.innoc.rc.db.Bot;
 import at.innoc.rc.db.Competition;
 import at.innoc.rc.db.Dao;
@@ -10,14 +9,12 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Aaron on 20.02.2016.
@@ -40,11 +37,15 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
     private static final String TRACK_BEST = "Track record: ";
     private static final String BOT_BEST = "Current bot record: ";
 
+    private volatile boolean running;
+    private volatile boolean timerTerminated;
+    private volatile long passed;
+
     public static final String DEFAULT_HEAD = "<html><font color=#4A83DE>ROBOT CHALLENGE 2016</font></html>";
 
-    public OperatorListener(OperatorFrame opFrame, DisplayFrame displayFrame){
-        this.opFrame = opFrame;
+    public OperatorListener(DisplayFrame displayFrame, OperatorFrame opFrame){
         this.displayFrame = displayFrame;
+        this.opFrame = opFrame;
         this.db = new JDBCDao();
     }
 
@@ -54,15 +55,95 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
             cbComps.addItem(c);
         }
 
-        opFrame.getLblStatus().setText(PAUSE);
-        displayFrame.getLblStatus().setText(PAUSE);
-
-        opFrame.getLblStatus().setBackground(COLOR_PAUSE);
-        displayFrame.getLblStatus().setBackground(COLOR_PAUSE);
+        setStatus(PAUSE, COLOR_PAUSE);
 
         displayFrame.getLblBotName().setText(DEFAULT_HEAD);
         displayFrame.getLblTrackBestTime().setText(TRACK_BEST);
         displayFrame.getLblBotBestTime().setText(BOT_BEST);
+    }
+
+    private void setStatusText(String status){
+        JLabel opStatus = opFrame.getLblStatus();
+        JLabel displayStatus = displayFrame.getLblStatus();
+
+        opStatus.setText(status);
+        displayStatus.setText(status);
+    }
+
+    private void setStatusBackground(Color bg){
+        JLabel opStatus = opFrame.getLblStatus();
+        JLabel displayStatus = displayFrame.getLblStatus();
+
+        opStatus.setBackground(bg);
+        displayStatus.setBackground(bg);
+    }
+
+    private void setStatus(String status, Color bg){
+        setStatusText(status);
+        setStatusBackground(bg);
+    }
+
+    private class TimerThread implements Runnable{
+
+        @Override
+        public void run() {
+            long start = System.currentTimeMillis();
+            timerTerminated = false;
+
+            while(running){
+                long current = System.currentTimeMillis();
+                passed = current - start;
+
+                String status = "%02d.%02d:%02d";
+                long minutes = TimeUnit.MILLISECONDS.toMinutes(passed);
+                long seconds = TimeUnit.MILLISECONDS.toSeconds(passed) - minutes * 60;
+                long hundredthSeconds = passed / 10 - seconds * 100 - minutes * 100 * 60;
+                status = String.format(status, minutes, seconds, hundredthSeconds);
+
+                setStatusText(status);
+
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            timerTerminated = true;
+        }
+    }
+
+    /**
+     * Called when something passes through the light barrier
+     */
+    public void onTrigger(){
+        JToggleButton btnReady = opFrame.getBtnReady();
+        JRadioButton btnConfirm = opFrame.getBtnConfirm();
+        JRadioButton btnAbort = opFrame.getBtnAbort();
+        JRadioButton btnInvalidate = opFrame.getBtnInvalidate();
+
+        if(running){
+            running = false;
+            setStatusBackground(COLOR_FINISHED);
+            btnConfirm.setEnabled(true);
+            while(!timerTerminated){
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            //TODO: stuff
+        }
+        else if(opFrame.ready()){
+            running = true;
+            setStatusBackground(COLOR_RUNNING);
+            btnReady.setEnabled(false);
+            btnInvalidate.setEnabled(true);
+            btnAbort.setEnabled(true);
+            new Thread(new TimerThread()).start();
+        }
     }
 
     @Override
@@ -70,28 +151,34 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
         switch(e.getActionCommand()){
             case "cbComps": onCompetitionSelection(e.getSource()); break;
             case "btnReady": onReady(e.getSource()); break;
+            case "btnConfirm": onConfirm(e.getSource()); break;
+            case "btnAbort": onAbort(e.getSource()); break;
+            case "btnInvalidate": onInvalidate(e.getSource()); break;
         }
+    }
+
+    private void onAbort(Object source){
+        //TODO: asdf
+    }
+
+    private void onInvalidate(Object source){
+        //TODO: sadf
+    }
+
+    private void onConfirm(Object source){
+        JButton btnConfirm = (JButton) source;
+
+        //TODO: sdfa
     }
 
     private void onReady(Object source){
         JToggleButton btnReady = (JToggleButton) source;
 
-        JLabel opStatus = opFrame.getLblStatus();
-        JLabel displayStatus = displayFrame.getLblStatus();
-
         if(btnReady.isSelected()){
-            opStatus.setBackground(COLOR_READY);
-            displayStatus.setBackground(COLOR_READY);
-
-            opStatus.setText(READY);
-            displayStatus.setText(READY);
+            setStatus(READY, COLOR_READY);
         }
         else{
-            opStatus.setBackground(COLOR_PAUSE);
-            displayStatus.setBackground(COLOR_PAUSE);
-
-            opStatus.setText(PAUSE);
-            displayStatus.setText(PAUSE);
+            setStatus(PAUSE, COLOR_PAUSE);
         }
     }
 
@@ -133,7 +220,7 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
             lblBotName.setText(DEFAULT_HEAD);
             lblTrackBestTime.setText(TRACK_BEST);
             lblBotBestTime.setText(BOT_BEST);
-            lblCountryShort.setText("??");
+            lblCountryShort.setText("");
         }
         else{
             lblBotName.setText(selectedBot.getName());
