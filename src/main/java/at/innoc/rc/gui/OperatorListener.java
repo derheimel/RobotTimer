@@ -119,6 +119,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
      */
     public void onTrigger(){
         JToggleButton btnReady = opFrame.getBtnReady();
+        JButton btnStop = opFrame.getBtnStop();
         JRadioButton btnConfirm = opFrame.getBtnConfirm();
         JRadioButton btnAbort = opFrame.getBtnAbort();
         JRadioButton btnInvalidate = opFrame.getBtnInvalidate();
@@ -127,6 +128,10 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
             stopTimer();
             btnConfirm.setEnabled(true);
             btnAbort.setEnabled(false);
+            if(btnStop.isEnabled()){
+                btnStop.setEnabled(false);
+                blink(false);
+            }
         }
         else if(opFrame.ready()){
             running = true;
@@ -252,6 +257,8 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         }
         else if(btnInvalidate.isSelected()){
             if(running){
+                btnAbort.setEnabled(false);
+                btnInvalidate.setEnabled(false);
                 btnStop.setEnabled(true);
                 setStatusBackground(COLOR_INVALIDATED);
             }
