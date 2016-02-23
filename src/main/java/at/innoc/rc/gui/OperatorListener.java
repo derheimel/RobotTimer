@@ -14,12 +14,13 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Aaron on 20.02.2016.
  */
-public class OperatorListener implements ActionListener, ListSelectionListener{
+public class OperatorListener extends MouseAdapter implements ActionListener, ListSelectionListener{
 
     private Dao db;
     private OperatorFrame opFrame;
@@ -123,18 +124,9 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
         JRadioButton btnInvalidate = opFrame.getBtnInvalidate();
 
         if(running){
-            running = false;
-            setStatusBackground(COLOR_FINISHED);
+            stopTimer();
             btnConfirm.setEnabled(true);
-            while(!timerTerminated){
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            //TODO: stuff
+            btnAbort.setEnabled(false);
         }
         else if(opFrame.ready()){
             running = true;
@@ -146,39 +138,175 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
         }
     }
 
+    private void stopTimer(){
+        running = false;
+        setStatusBackground(COLOR_FINISHED);
+        while(!timerTerminated){
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         switch(e.getActionCommand()){
             case "cbComps": onCompetitionSelection(e.getSource()); break;
-            case "btnReady": onReady(e.getSource()); break;
-            case "btnConfirm": onConfirm(e.getSource()); break;
-            case "btnAbort": onAbort(e.getSource()); break;
-            case "btnInvalidate": onInvalidate(e.getSource()); break;
+            case "btnReady": onReady(); break;
+            case "btnAbort": onAbortSelection(); break;
+            case "btnInvalidate": onInvalidateSelection(); break;
+            case "btnConfirm": onConfirmSelection(); break;
+            case "btnOK": onOK(); break;
+            case "btnStop": onStop(); break;
         }
     }
 
-    private void onAbort(Object source){
-        //TODO: asdf
+    private void onStop(){
+        stopTimer();
+        JToggleButton btnReady = opFrame.getBtnReady();
+        btnReady.setEnabled(true);
+        btnReady.doClick();
+        opFrame.getJlBots().setEnabled(true);
+        opFrame.getCbComps().setEnabled(true);
+        opFrame.getBtnStop().setEnabled(false);
     }
 
-    private void onInvalidate(Object source){
-        //TODO: sadf
+    private class BlinkThread implements Runnable{
+
+        boolean confirmed;
+
+        BlinkThread(boolean confirmed){
+            this.confirmed = confirmed;
+        }
+
+        @Override
+        public void run() {
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    opFrame.getBtnInvalidate().setEnabled(false);
+                    opFrame.getBtnConfirm().setEnabled(false);
+
+                    opFrame.getBtnInvalidate().setEnabled(false);
+                    opFrame.getBtnConfirm().setEnabled(false);
+                }
+            });
+
+            final Color color = confirmed ? COLOR_CONFIRMED :  COLOR_INVALIDATED;
+
+            try {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        setStatusBackground(color);
+                    }
+                });
+                Thread.sleep(500);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        setStatusBackground(COLOR_FINISHED);
+                    }
+                });
+                Thread.sleep(500);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        setStatusBackground(color);
+                    }
+                });
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    opFrame.getBtnReady().setEnabled(true);
+                    opFrame.getBtnReady().doClick();
+                    opFrame.getJlBots().setEnabled(true);
+                    opFrame.getCbComps().setEnabled(true);
+                }
+            });
+        }
     }
 
-    private void onConfirm(Object source){
-        JButton btnConfirm = (JButton) source;
+    private void onOK(){
+        JButton btnOK = opFrame.getBtnOK();
+        btnOK.setEnabled(false);
+        JRadioButton btnAbort = opFrame.getBtnAbort();
+        JRadioButton btnInvalidate = opFrame.getBtnInvalidate();
+        JRadioButton btnConfirm = opFrame.getBtnConfirm();
 
-        //TODO: sdfa
+        JToggleButton btnReady = opFrame.getBtnReady();
+        JButton btnStop = opFrame.getBtnStop();
+        JList<Bot> jlBots = opFrame.getJlBots();
+        JComboBox<Competition> cbComps = opFrame.getCbComps();
+
+        if(btnAbort.isSelected()){
+            onStop();
+        }
+        else if(btnInvalidate.isSelected()){
+            if(running){
+                btnStop.setEnabled(true);
+                setStatusBackground(COLOR_INVALIDATED);
+            }
+            else {
+                blink(false);
+            }
+        }
+        else if(btnConfirm.isSelected()){
+            stopTimer();
+            saveResult();
+            blink(true);
+        }
+
+        opFrame.getBg().clearSelection();
     }
 
-    private void onReady(Object source){
-        JToggleButton btnReady = (JToggleButton) source;
+    private void blink(boolean confirmed){
+        new Thread(new BlinkThread(confirmed)).start();
+    }
+
+    private void saveResult(){
+        //TODO:
+    }
+
+    private void onAbortSelection(){
+        opFrame.getBtnOK().setEnabled(true);
+        opFrame.getLblOK().setText("ABORT");
+        opFrame.getBtnStop().setEnabled(false);
+    }
+
+    private void onInvalidateSelection(){
+        opFrame.getBtnOK().setEnabled(true);
+        opFrame.getLblOK().setText("INVALIDATE");
+    }
+
+    private void onConfirmSelection(){
+        opFrame.getBtnOK().setEnabled(true);
+        opFrame.getLblOK().setText("CONFIRM");
+        opFrame.getBtnStop().setEnabled(false);
+    }
+
+    private void onReady(){
+        JToggleButton btnReady = opFrame.getBtnReady();
+        JList<Bot> jlBots = opFrame.getJlBots();
+        JComboBox<Competition> cbComps = opFrame.getCbComps();
 
         if(btnReady.isSelected()){
             setStatus(READY, COLOR_READY);
+            jlBots.setEnabled(false);
+            cbComps.setEnabled(false);
         }
         else{
             setStatus(PAUSE, COLOR_PAUSE);
+            jlBots.setEnabled(true);
+            cbComps.setEnabled(true);
         }
     }
 
@@ -233,6 +361,12 @@ public class OperatorListener implements ActionListener, ListSelectionListener{
 
 
         //TODO: stuff
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e){
+        if(!running) return;
+        opFrame.getBg().clearSelection();
     }
 
     private BufferedImage getFlag(String country){

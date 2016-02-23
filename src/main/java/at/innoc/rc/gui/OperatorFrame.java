@@ -20,10 +20,11 @@ public class OperatorFrame extends JFrame{
     private JRadioButton btnAbort;
     private JRadioButton btnInvalidate;
     private JRadioButton btnConfirm;
+    private ButtonGroup bg;
     private JButton btnOK;
     private JLabel lblTries;
     private JLabel lblStatus;
-    private JLabel lblCheck;
+    private JLabel lblOK;
 
     private JPanel pnlButtons;
     private JPanel pnlNormalButtons;
@@ -45,6 +46,7 @@ public class OperatorFrame extends JFrame{
         this.opListener = new OperatorListener(display, this);
         createWidgets();
         addWidgets();
+        addMouseListener(opListener);
         pack();
         setLocationRelativeTo(null);
     }
@@ -70,7 +72,6 @@ public class OperatorFrame extends JFrame{
         btnStop = new JButton("Stop");
         btnStop.setActionCommand("btnStop");
         btnStop.addActionListener(opListener);
-        btnStop.setSize(btnReady.getMinimumSize());
         btnStop.setEnabled(false);
 
         btnAbort = new JRadioButton("Abort");
@@ -88,12 +89,14 @@ public class OperatorFrame extends JFrame{
         btnConfirm.addActionListener(opListener);
         btnConfirm.setEnabled(false);
 
-        ButtonGroup bg = new ButtonGroup();
+        bg = new ButtonGroup();
         bg.add(btnAbort);
         bg.add(btnInvalidate);
         bg.add(btnConfirm);
 
         btnOK = new JButton("OK");
+        btnOK.setActionCommand("btnOK");
+        btnOK.addActionListener(opListener);
         btnOK.setEnabled(false);
 
         lblTries = new JLabel("-");
@@ -105,9 +108,9 @@ public class OperatorFrame extends JFrame{
         lblStatus.setOpaque(true);
         lblStatus.setMinimumSize(lblStatus.getPreferredSize());
 
-        lblCheck = new JLabel();
-        lblCheck.setHorizontalAlignment(SwingConstants.CENTER);
-        lblCheck.setVerticalAlignment(SwingConstants.BOTTOM);
+        lblOK = new JLabel();
+        lblOK.setHorizontalAlignment(SwingConstants.CENTER);
+        lblOK.setVerticalAlignment(SwingConstants.BOTTOM);
 
         pnlButtons = new JPanel();
 
@@ -147,7 +150,7 @@ public class OperatorFrame extends JFrame{
         pnlButtons.setMaximumSize(pnlButtons.getPreferredSize());
 
         pnlCheck.setLayout(new GridLayout(2, 1));
-        pnlCheck.add(lblCheck);
+        pnlCheck.add(lblOK);
         pnlCheck.add(btnOK);
 
         pnlTries.add(lblTries);
@@ -176,6 +179,10 @@ public class OperatorFrame extends JFrame{
         return jlBots;
     }
 
+    protected JComboBox<Competition> getCbComps() {
+        return cbComps;
+    }
+
     protected JLabel getLblTries() {
         return lblTries;
     }
@@ -200,8 +207,8 @@ public class OperatorFrame extends JFrame{
         return btnOK;
     }
 
-    protected JLabel getLblCheck() {
-        return lblCheck;
+    protected JLabel getLblOK() {
+        return lblOK;
     }
 
     protected JRadioButton getBtnAbort() {
@@ -210,6 +217,10 @@ public class OperatorFrame extends JFrame{
 
     protected JButton getBtnStop() {
         return btnStop;
+    }
+
+    protected ButtonGroup getBg() {
+        return bg;
     }
 
     public OperatorListener getOpListener(){
