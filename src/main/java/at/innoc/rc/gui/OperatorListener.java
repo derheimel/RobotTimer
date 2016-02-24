@@ -13,7 +13,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -358,7 +357,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
             botLabel = BOT_BEST_ENHANCED;
         }
 
-        int bestTrackTime = db.getBestTimeByCompetitions(cbComps, modus);
+        int bestTrackTime = db.getBestTimeByModus(cbComps, modus);
         String bestTimeText = "<html>" + trackLabel + "<font color=#006400>["
                 + toTimeString(bestTrackTime) + "]</font></html>";
         displayFrame.getLblTrackBestTime().setText(bestTimeText);
@@ -389,12 +388,14 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 
         if(selectedBot.getUid() == -1){
             lblBotName.setText(DEFAULT_HEAD);
+            lblBotBestTime.setText(botLabel);
             lblCountryShort.setText("");
         }
         else{
             lblBotName.setText(selectedBot.getName());
-            String botTime = toTimeString(db.getBestTimeByCompetitions(opFrame.getCbComps(), modus, selectedBot));
-            lblBotBestTime.setText(botLabel + botTime);
+            String botTime = toTimeString(db.getBestTimeByModus(opFrame.getCbComps(), modus, selectedBot));
+            lblBotBestTime.setText("<html>" + botLabel +
+                    "<font color=#006400>[" + botTime + "]</font></html>");
             lblCountryShort.setText(selectedBot.getCountry());
         }
 

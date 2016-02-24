@@ -155,12 +155,12 @@ public class JDBCDao implements Dao {
     }
 
     @Override
-    public int getBestTimeByCompetitions(JComboBox<Competition> cbComps, String modus) {
-        return getBestTimeByCompetitions(cbComps, modus, null);
+    public int getBestTimeByModus(JComboBox<Competition> cbComps, String modus) {
+        return getBestTimeByModus(cbComps, modus, null);
     }
 
     @Override
-    public int getBestTimeByCompetitions(JComboBox<Competition> cbComps, String modus, Bot bot) {
+    public int getBestTimeByModus(JComboBox<Competition> cbComps, String modus, Bot bot) {
         int bestTime = Integer.MAX_VALUE;
 
         List<Competition> comps = new ArrayList<>();
