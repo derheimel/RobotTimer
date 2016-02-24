@@ -411,18 +411,20 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         displayFrame.updateFlag(flag);
 
         JLabel lblTries = opFrame.getLblTries();
-        lblTries.setText("" + db.getTries(mode, selectedBot));
 
         JLabel lblBotName = displayFrame.getLblBotName();
         JLabel lblBotBestTime = displayFrame.getLblBotBestTime();
         JLabel lblCountryShort = displayFrame.getLblCountryShort();
 
         if(selectedBot.getUid() == -1){
+            lblTries.setText("-");
             lblBotName.setText(DEFAULT_HEAD);
             lblBotBestTime.setText(botLabel);
             lblCountryShort.setText("");
+
         }
         else{
+            lblTries.setText("" + db.getTries(mode, selectedBot));
             lblBotName.setText(selectedBot.getName());
             updateBotRecord();
             lblCountryShort.setText(selectedBot.getCountry());
@@ -442,10 +444,15 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 
     private BufferedImage getFlag(String country){
         BufferedImage flag = null;
+        if(country == null) return null;
         try {
             flag = ImageIO.read(getClass().getClassLoader().getResourceAsStream("at/innoc/rc/gfx/" + country.toLowerCase() + ".png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            try {
+                flag = ImageIO.read(getClass().getClassLoader().getResourceAsStream("at/innoc/rc/gfx/noflag.png"));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
         return flag;
     }

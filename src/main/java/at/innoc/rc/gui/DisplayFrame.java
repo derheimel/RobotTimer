@@ -130,6 +130,11 @@ public class DisplayFrame extends JFrame{
     }
 
     protected void updateFlag(BufferedImage flag){
+        if(flag == null){
+            pnlFlag.flag = null;
+            pnlFlag.repaint();
+            return;
+        }
         int height = pnlFlag.getHeight();
         int width = (int)(1f * flag.getWidth() / flag.getHeight() * height);
 
