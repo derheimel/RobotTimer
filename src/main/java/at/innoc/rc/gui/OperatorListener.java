@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +47,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
     private volatile boolean timerTerminated;
     private volatile long passed;
 
-    public static final String DEFAULT_HEAD = "<html><font color=#4A83DE>ROBOT CHALLENGE 2016</font></html>";
+    public static final String DEFAULT_HEAD = "<html><font color=#4A83DE>ROBOT CHALLENGE " + Calendar.getInstance().get(Calendar.YEAR) + "</font></html>";
 
     public OperatorListener(DisplayFrame displayFrame, OperatorFrame opFrame){
         this.displayFrame = displayFrame;
@@ -448,6 +449,8 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         try {
             flag = ImageIO.read(getClass().getClassLoader().getResourceAsStream("at/innoc/rc/gfx/" + country.toLowerCase() + ".png"));
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch(IllegalArgumentException e){
             try {
                 flag = ImageIO.read(getClass().getClassLoader().getResourceAsStream("at/innoc/rc/gfx/noflag.png"));
             } catch (IOException e1) {

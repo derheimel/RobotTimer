@@ -10,7 +10,7 @@ public class Bot {
     private String country; //via team_pk_team -> team_land
     private String name; //bot_name
 
-    public static final Bot FIRST_ITEM = new Bot(-1, -1, null, "SELECT");
+    public static final Bot FIRST_ITEM = new Bot(-1, -1, "sfd", "SELECT");
 
     public Bot(int uid, int startNr, String country, String name){
         this.uid = uid;
