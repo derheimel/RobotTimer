@@ -1,9 +1,6 @@
 package at.innoc.rc.gui;
 
-import at.innoc.rc.db.Bot;
-import at.innoc.rc.db.Competition;
-import at.innoc.rc.db.Dao;
-import at.innoc.rc.db.JDBCDao;
+import at.innoc.rc.db.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -41,8 +38,9 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
     private static final String BOT_BEST_ENHANCED = "Bot record (enhanced): ";
     private static final String BOT_BEST_LEGO = "Bot record (lego): ";
 
+    private String trackLabel = TRACK_BEST_NORMAL;
     private String botLabel = BOT_BEST_NORMAL;
-    private String modus = "";
+    private String mode = "";
 
     private volatile boolean running;
     private volatile boolean timerTerminated;
@@ -138,11 +136,13 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         JRadioButton btnConfirm = opFrame.getBtnConfirm();
         JRadioButton btnAbort = opFrame.getBtnAbort();
         JRadioButton btnInvalidate = opFrame.getBtnInvalidate();
+        JList<Bot> jlBots = opFrame.getJlBots();
+
+        boolean isSelected = !jlBots.isSelectionEmpty() && jlBots.getSelectedValue().getUid() != -1;
 
         if(running){
             stopTimer();
-            btnConfirm.setEnabled(true);
-            btnAbort.setEnabled(false);
+            if(isSelected) btnConfirm.setEnabled(true);
             if(btnStop.isEnabled()){
                 btnStop.setEnabled(false);
                 blink(false);
@@ -152,7 +152,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
             running = true;
             setStatusBackground(COLOR_RUNNING);
             btnReady.setEnabled(false);
-            btnInvalidate.setEnabled(true);
+            if(isSelected) btnInvalidate.setEnabled(true);
             btnAbort.setEnabled(true);
             new Thread(new TimerThread()).start();
         }
@@ -262,13 +262,15 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         JRadioButton btnInvalidate = opFrame.getBtnInvalidate();
         JRadioButton btnConfirm = opFrame.getBtnConfirm();
 
-        JToggleButton btnReady = opFrame.getBtnReady();
         JButton btnStop = opFrame.getBtnStop();
-        JList<Bot> jlBots = opFrame.getJlBots();
-        JComboBox<Competition> cbComps = opFrame.getCbComps();
+
+        JLabel lblTries = opFrame.getLblTries();
 
         if(btnAbort.isSelected()){
             onStop();
+            btnAbort.setEnabled(false);
+            btnInvalidate.setEnabled(false);
+            btnConfirm.setEnabled(false);
         }
         else if(btnInvalidate.isSelected()){
             if(running){
@@ -280,10 +282,14 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
             else {
                 blink(false);
             }
+            saveResult(false);
+            onBotSelection();
         }
         else if(btnConfirm.isSelected()){
             stopTimer();
-            saveResult();
+            saveResult(true);
+            onBotSelection();
+            updateTrackRecord();
             blink(true);
         }
 
@@ -294,8 +300,14 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         new Thread(new BlinkThread(confirmed)).start();
     }
 
-    private void saveResult(){
-        //TODO:
+    private void saveResult(boolean confirmed){
+        Bot selectedBot = opFrame.getJlBots().getSelectedValue();
+        Competition selectedComp = (Competition)opFrame.getCbComps().getSelectedItem();
+
+        int tries = Integer.parseInt(opFrame.getLblTries().getText()) + 1;
+        Result result = new Result(5, selectedBot, selectedComp, tries);
+        if(confirmed) result.setTime((int) (passed / 10));
+        db.saveResult(result);
     }
 
     private void onAbortSelection(){
@@ -343,35 +355,54 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         jlBots.setListData(bots);
 
         String compNameLower = selectedComp.getName().toLowerCase();
-        modus = "";
+
+        mode = "";
         botLabel = BOT_BEST_NORMAL;
-        String trackLabel = TRACK_BEST_NORMAL;
+        trackLabel = TRACK_BEST_NORMAL;
+
         if(compNameLower.contains("lego")){
-            modus = "lego";
+            mode = "lego";
             trackLabel = TRACK_BEST_LEGO;
             botLabel = BOT_BEST_LEGO;
         }
         else if(compNameLower.contains("enhanced")){
-            modus = "enhanced";
+            mode = "enhanced";
             trackLabel = TRACK_BEST_ENHANCED;
             botLabel = BOT_BEST_ENHANCED;
         }
 
-        int bestTrackTime = db.getBestTimeByModus(cbComps, modus);
+        updateTrackRecord();
+        displayFrame.getLblBotBestTime().setText(botLabel);
+        displayFrame.getLblBotName().setText(DEFAULT_HEAD);
+    }
+
+    private void updateTrackRecord(){
+        JComboBox<Competition> cbComps = opFrame.getCbComps();
+        Competition selectedComp = (Competition) cbComps.getSelectedItem();
+        if(selectedComp.getUid() == -1) return;
+        int bestTrackTime = db.getBestTimeByMode(mode);
         String bestTimeText = "<html>" + trackLabel + "<font color=#006400>["
                 + toTimeString(bestTrackTime) + "]</font></html>";
         displayFrame.getLblTrackBestTime().setText(bestTimeText);
-        displayFrame.getLblBotBestTime().setText(botLabel);
+    }
+
+    private void updateBotRecord(){
+        JList<Bot> jlBots = opFrame.getJlBots();
+        if(jlBots.isSelectionEmpty()) return;
+        int bestBotTime = db.getBestTimeByMode(mode, jlBots.getSelectedValue());
+        String bestTimeText = "<html>" + botLabel +
+                "<font color=#006400>[" + toTimeString(bestBotTime) + "]</font></html>";
+        displayFrame.getLblBotBestTime().setText(bestTimeText);
     }
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
         if(e.getValueIsAdjusting()) return;
-        onBotSelection(e.getSource());
+        onBotSelection();
     }
 
-    private void onBotSelection(Object source){
-        JList<Bot> jlBots = (JList<Bot>) source;
+    private void onBotSelection(){
+        JList<Bot> jlBots = opFrame.getJlBots();
         Bot selectedBot = jlBots.getSelectedValue();
 
         if(selectedBot == null) return;
@@ -380,7 +411,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         displayFrame.updateFlag(flag);
 
         JLabel lblTries = opFrame.getLblTries();
-//        lblTries.setText(selectedBot.get);
+        lblTries.setText("" + db.getTries(mode, selectedBot));
 
         JLabel lblBotName = displayFrame.getLblBotName();
         JLabel lblBotBestTime = displayFrame.getLblBotBestTime();
@@ -393,9 +424,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         }
         else{
             lblBotName.setText(selectedBot.getName());
-            String botTime = toTimeString(db.getBestTimeByModus(opFrame.getCbComps(), modus, selectedBot));
-            lblBotBestTime.setText("<html>" + botLabel +
-                    "<font color=#006400>[" + botTime + "]</font></html>");
+            updateBotRecord();
             lblCountryShort.setText(selectedBot.getCountry());
         }
 

@@ -5,34 +5,22 @@ package at.innoc.rc.db;
  */
 public class Result {
 
-    private int uid; //pk_res
     private int status; //stat_pk_stat
     private Bot bot; //bot_comp_bot_pk_bot
     private Competition comp; //bot_comp_comp_pk_comp
     private int tries; //res_id1
+    private int time;
 
-    public Result(int status, Bot bot, Competition comp, int tries, int uid){
-        this.uid = uid;
+    public Result(int status, Bot bot, Competition comp, int tries, int time){
         this.status = status;
         this.bot = bot;
         this.comp = comp;
         this.tries = tries;
+        this.time = time;
     }
 
     public Result(int status, Bot bot, Competition comp, int tries){
-        this(status, bot, comp, tries, -1);
-    }
-
-    public void setTries(int tries) {
-        this.tries = tries;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public int getUid() {
-        return uid;
+        this(status, bot, comp, tries, 0);
     }
 
     public int getStatus() {
@@ -49,5 +37,13 @@ public class Result {
 
     public int getTries() {
         return tries;
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public void setTime(int time){
+        this.time = time;
     }
 }

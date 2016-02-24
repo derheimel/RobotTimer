@@ -2,7 +2,6 @@ package at.innoc.rc.db;
 
 import at.innoc.rc.RobotTimer;
 
-import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,16 +69,17 @@ public class JDBCDao implements Dao {
 
     @Override
     public boolean saveResult(Result entity) {
-        int uid = entity.getUid();
+//        int uid = entity.getUid();
         try {
             String query = "";
-            if(uid == -1) {
+            int time = entity.getTime();
+            if(time == 0) {
                 query = "insert into res(" + RESULT_STATUS + ", " + RESULT_BOT + ", " + RESULT_COMP + ", " + RESULT_TRIES + ") " +
                         "values(?, ?, ?, ?)";
             }
             else{
-                query = "update res set " + RESULT_STATUS + " = ?, " + RESULT_BOT + " = ?, "
-                        + RESULT_COMP + " = ?, " + RESULT_TRIES + " = ? where " + RESULT_UID + " = " + uid;
+                query = "insert into res(" + RESULT_STATUS + ", " + RESULT_BOT + ", " + RESULT_COMP + ", " + RESULT_TRIES + ", " + RESULT_TIME + ") " +
+                        "values(?, ?, ?, ?, " + time + ")";
             }
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setInt(1, entity.getStatus());
@@ -87,6 +87,7 @@ public class JDBCDao implements Dao {
             pst.setInt(3, entity.getComp().getUid());
             pst.setInt(4, entity.getTries());
             pst.executeUpdate();
+            pst.close();
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -115,6 +116,8 @@ public class JDBCDao implements Dao {
                 Competition t = new Competition(rs.getInt(COMP_UID), rs.getString(COMP_NAME));
                 comps.add(t);
             }
+
+            rs.close();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -147,6 +150,8 @@ public class JDBCDao implements Dao {
                 bots.add(b);
             }
 
+            rs.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -154,22 +159,27 @@ public class JDBCDao implements Dao {
         return bots;
     }
 
-    @Override
-    public int getBestTimeByModus(JComboBox<Competition> cbComps, String modus) {
-        return getBestTimeByModus(cbComps, modus, null);
+    private List<Competition> getCompsByModus(String modus){
+        List<Competition> comps = new ArrayList<>();
+        List<Competition> allComps = getLineFollowerComps();
+        for(Competition c : allComps){
+            if(c.getName().toLowerCase().contains(modus)){
+                comps.add(c);
+            }
+        }
+        return comps;
     }
 
     @Override
-    public int getBestTimeByModus(JComboBox<Competition> cbComps, String modus, Bot bot) {
+    public int getBestTimeByMode(String modus) {
+        return getBestTimeByMode(modus, null);
+    }
+
+    @Override
+    public int getBestTimeByMode(String modus, Bot bot) {
         int bestTime = Integer.MAX_VALUE;
 
-        List<Competition> comps = new ArrayList<>();
-        for(int i = 0; i < cbComps.getItemCount(); i++){
-            Competition comp = cbComps.getItemAt(i);
-            if(comp.getName().toLowerCase().contains(modus)){
-                comps.add(comp);
-            }
-        }
+        List<Competition> comps = getCompsByModus(modus);
 
         for(Competition c : comps) {
             int cUid = c.getUid();
@@ -188,6 +198,7 @@ public class JDBCDao implements Dao {
                 if(tmpBestTime != 0 && tmpBestTime < bestTime){
                     bestTime = tmpBestTime;
                 }
+                rs.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -196,5 +207,31 @@ public class JDBCDao implements Dao {
         return bestTime == Integer.MAX_VALUE ? 0 : bestTime;
     }
 
+    @Override
+    public int getTries(String mode, Bot bot) {
+        int tries = 0;
+
+        List<Competition> comps = getCompsByModus(mode);
+
+        for(Competition c : comps) {
+            try {
+                PreparedStatement pst = conn.prepareStatement(
+                        "select max(" + RESULT_TRIES + ") as tries " +
+                                "from res " +
+                                "where " + RESULT_COMP + " = " + c.getUid() + " " +
+                                "and " + RESULT_BOT + " = " + bot.getUid()
+                );
+
+                ResultSet rs = pst.executeQuery();
+                rs.next();
+                tries += rs.getInt("tries");
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return tries;
+    }
 
 }

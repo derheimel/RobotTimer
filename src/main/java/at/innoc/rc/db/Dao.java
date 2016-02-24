@@ -14,8 +14,10 @@ public interface Dao {
 
     public List<Bot> getBotsByCompetition(Competition comp);
 
-    public int getBestTimeByModus(JComboBox<Competition> cbComps, String filter);
+    public int getBestTimeByMode(String mode);
 
-    public int getBestTimeByModus(JComboBox<Competition> cbComps, String filter, Bot bot);
+    public int getBestTimeByMode(String mode, Bot bot);
+
+    public int getTries(String mode, Bot bot);
 
 }
