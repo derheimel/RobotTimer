@@ -1,5 +1,6 @@
 package at.innoc.rc.db;
 
+import javax.swing.*;
 import java.util.List;
 
 /**
@@ -12,5 +13,9 @@ public interface Dao {
     public List<Competition> getLineFollowerComps();
 
     public List<Bot> getBotsByCompetition(Competition comp);
+
+    public int getBestTimeByCompetitions(JComboBox<Competition> cbComps, String filter);
+
+    public int getBestTimeByCompetitions(JComboBox<Competition> cbComps, String filter, Bot bot);
 
 }

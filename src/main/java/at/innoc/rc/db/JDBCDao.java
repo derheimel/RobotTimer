@@ -2,8 +2,7 @@ package at.innoc.rc.db;
 
 import at.innoc.rc.RobotTimer;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +21,7 @@ public class JDBCDao implements Dao {
     private final String RESULT_BOT = "bot_comp_bot_pk_bot";
     private final String RESULT_COMP = "bot_comp_comp_pk_comp";
     private final String RESULT_TRIES = "res_id1";
+    private final String RESULT_TIME = "res_result_short";
 
     private final String COMP_UID = "pk_comp";
     private final String COMP_NAME = "comp_name";
@@ -153,4 +153,48 @@ public class JDBCDao implements Dao {
 
         return bots;
     }
+
+    @Override
+    public int getBestTimeByCompetitions(JComboBox<Competition> cbComps, String modus) {
+        return getBestTimeByCompetitions(cbComps, modus, null);
+    }
+
+    @Override
+    public int getBestTimeByCompetitions(JComboBox<Competition> cbComps, String modus, Bot bot) {
+        int bestTime = Integer.MAX_VALUE;
+
+        List<Competition> comps = new ArrayList<>();
+        for(int i = 0; i < cbComps.getItemCount(); i++){
+            Competition comp = cbComps.getItemAt(i);
+            if(comp.getName().toLowerCase().contains(modus)){
+                comps.add(comp);
+            }
+        }
+
+        for(Competition c : comps) {
+            int cUid = c.getUid();
+            try {
+                String botStr = "";
+                if(bot != null) botStr = "and " + RESULT_BOT + " = " + bot.getUid();
+                PreparedStatement pst = conn.prepareStatement(
+                        "select min(" + RESULT_TIME + ") as result " +
+                                "from res " +
+                                "where " + RESULT_COMP + " = " + cUid + " " +
+                                botStr
+                );
+                ResultSet rs = pst.executeQuery();
+                rs.next();
+                int tmpBestTime = rs.getInt("result");
+                if(tmpBestTime != 0 && tmpBestTime < bestTime){
+                    bestTime = tmpBestTime;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return bestTime == Integer.MAX_VALUE ? 0 : bestTime;
+    }
+
+
 }

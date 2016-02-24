@@ -13,8 +13,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,8 +35,15 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 
     private static final String PAUSE = "PAUSE";
     private static final String READY = "READY";
-    private static final String TRACK_BEST = "Track record: ";
-    private static final String BOT_BEST = "Current bot record: ";
+    private static final String TRACK_BEST_NORMAL = "Track record (normal): ";
+    private static final String TRACK_BEST_ENHANCED = "Track record (enhanced): ";
+    private static final String TRACK_BEST_LEGO = "Track record (lego): ";
+    private static final String BOT_BEST_NORMAL = "Bot record (normal): ";
+    private static final String BOT_BEST_ENHANCED = "Bot record (enhanced): ";
+    private static final String BOT_BEST_LEGO = "Bot record (lego): ";
+
+    private String botLabel = BOT_BEST_NORMAL;
+    private String modus = "";
 
     private volatile boolean running;
     private volatile boolean timerTerminated;
@@ -59,8 +66,8 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         setStatus(PAUSE, COLOR_PAUSE);
 
         displayFrame.getLblBotName().setText(DEFAULT_HEAD);
-        displayFrame.getLblTrackBestTime().setText(TRACK_BEST);
-        displayFrame.getLblBotBestTime().setText(BOT_BEST);
+        displayFrame.getLblTrackBestTime().setText(TRACK_BEST_NORMAL);
+        displayFrame.getLblBotBestTime().setText(BOT_BEST_NORMAL);
     }
 
     private void setStatusText(String status){
@@ -84,6 +91,19 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         setStatusBackground(bg);
     }
 
+    private String toTimeString(int hundrethSeconds){
+        return toTimeString((long)(hundrethSeconds * 10));
+    }
+
+    private String toTimeString(long milliSeconds){
+        if(milliSeconds == 0) return "--";
+        String timeString = "%02d.%02d:%02d";
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(milliSeconds);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(milliSeconds) - minutes * 60;
+        long hundredthSeconds = milliSeconds / 10 - seconds * 100 - minutes * 100 * 60;
+        return String.format(timeString, minutes, seconds, hundredthSeconds);
+    }
+
     private class TimerThread implements Runnable{
 
         @Override
@@ -95,11 +115,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
                 long current = System.currentTimeMillis();
                 passed = current - start;
 
-                String status = "%02d.%02d:%02d";
-                long minutes = TimeUnit.MILLISECONDS.toMinutes(passed);
-                long seconds = TimeUnit.MILLISECONDS.toSeconds(passed) - minutes * 60;
-                long hundredthSeconds = passed / 10 - seconds * 100 - minutes * 100 * 60;
-                status = String.format(status, minutes, seconds, hundredthSeconds);
+                String status = toTimeString(passed);
 
                 setStatusText(status);
 
@@ -326,6 +342,27 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
         JList<Bot> jlBots = opFrame.getJlBots();
 
         jlBots.setListData(bots);
+
+        String compNameLower = selectedComp.getName().toLowerCase();
+        modus = "";
+        botLabel = BOT_BEST_NORMAL;
+        String trackLabel = TRACK_BEST_NORMAL;
+        if(compNameLower.contains("lego")){
+            modus = "lego";
+            trackLabel = TRACK_BEST_LEGO;
+            botLabel = BOT_BEST_LEGO;
+        }
+        else if(compNameLower.contains("enhanced")){
+            modus = "enhanced";
+            trackLabel = TRACK_BEST_ENHANCED;
+            botLabel = BOT_BEST_ENHANCED;
+        }
+
+        int bestTrackTime = db.getBestTimeByCompetitions(cbComps, modus);
+        String bestTimeText = "<html>" + trackLabel + "<font color=#006400>["
+                + toTimeString(bestTrackTime) + "]</font></html>";
+        displayFrame.getLblTrackBestTime().setText(bestTimeText);
+        displayFrame.getLblBotBestTime().setText(botLabel);
     }
 
     @Override
@@ -347,20 +384,17 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 //        lblTries.setText(selectedBot.get);
 
         JLabel lblBotName = displayFrame.getLblBotName();
-        JLabel lblTrackBestTime = displayFrame.getLblTrackBestTime();
         JLabel lblBotBestTime = displayFrame.getLblBotBestTime();
         JLabel lblCountryShort = displayFrame.getLblCountryShort();
 
         if(selectedBot.getUid() == -1){
             lblBotName.setText(DEFAULT_HEAD);
-            lblTrackBestTime.setText(TRACK_BEST);
-            lblBotBestTime.setText(BOT_BEST);
             lblCountryShort.setText("");
         }
         else{
             lblBotName.setText(selectedBot.getName());
-            //lblTrackBestTime.setText()
-            //lblBotBestTime.setText()
+            String botTime = toTimeString(db.getBestTimeByCompetitions(opFrame.getCbComps(), modus, selectedBot));
+            lblBotBestTime.setText(botLabel + botTime);
             lblCountryShort.setText(selectedBot.getCountry());
         }
 
@@ -379,7 +413,6 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
     private BufferedImage getFlag(String country){
         BufferedImage flag = null;
         try {
-            String str = getClass().getClassLoader().getResource("").getPath();
             flag = ImageIO.read(getClass().getClassLoader().getResourceAsStream("at/innoc/rc/gfx/" + country.toLowerCase() + ".png"));
         } catch (IOException e) {
             e.printStackTrace();
