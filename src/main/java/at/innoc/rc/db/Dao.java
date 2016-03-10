@@ -8,16 +8,18 @@ import java.util.List;
  */
 public interface Dao {
 
-    public boolean saveResult(Result result);
+    boolean saveResult(Result result);
 
-    public List<Competition> getLineFollowerComps();
+    List<Competition> getLineFollowerComps();
 
-    public List<Bot> getBotsByCompetition(Competition comp);
+    List<Bot> getBotsByCompetition(Competition comp);
 
-    public int getBestTimeByMode(String mode);
+    int getBestTimeByMode(String mode);
 
-    public int getBestTimeByMode(String mode, Bot bot);
+    int getBestTimeByMode(String mode, Bot bot);
 
-    public int getTries(String mode, Bot bot);
+    int getTries(String mode, Bot bot);
+
+    void updateCurrentMatch(int resultUid, int compUid);
 
 }

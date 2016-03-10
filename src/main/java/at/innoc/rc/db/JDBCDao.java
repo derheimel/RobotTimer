@@ -26,6 +26,8 @@ public class JDBCDao implements Dao {
     private final String COMP_NAME = "comp_name";
     private final String COMP_COMPCLASS = "compclass_pk_compclass";
     private final String COMP_EVENT = "event_pk_event";
+    private final String COMP_CUR_MATCH = "comp_current_match";
+    private final String COMP_CUR_MATCH_TIME = "comp_current_match_time";
 
     private final String BOT_UID = "pk_bot";
     private final String BOT_STARTNR = "bot_startnummer";
@@ -69,9 +71,8 @@ public class JDBCDao implements Dao {
 
     @Override
     public boolean saveResult(Result entity) {
-//        int uid = entity.getUid();
         try {
-            String query = "";
+            String query;
             int time = entity.getTime();
             if(time == 0) {
                 query = "insert into res(" + RESULT_STATUS + ", " + RESULT_BOT + ", " + RESULT_COMP + ", " + RESULT_TRIES + ") " +
@@ -87,7 +88,11 @@ public class JDBCDao implements Dao {
             pst.setInt(3, entity.getComp().getUid());
             pst.setInt(4, entity.getTries());
             pst.executeUpdate();
+            ResultSet rs = pst.executeQuery("select max(" + RESULT_UID + ") as id from res");
+            rs.next();
+            int resultUid = rs.getInt("id");
             pst.close();
+            updateCurrentMatch(resultUid, entity.getComp().getUid());
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -159,11 +164,20 @@ public class JDBCDao implements Dao {
         return bots;
     }
 
-    private List<Competition> getCompsByModus(String modus){
+    private List<Competition> getCompsByMode(String modus){
         List<Competition> comps = new ArrayList<>();
         List<Competition> allComps = getLineFollowerComps();
+        boolean normal = false;
+        if(modus.equals("normal")) normal = true;
         for(Competition c : allComps){
-            if(c.getName().toLowerCase().contains(modus)){
+            if(normal){
+                String compName = c.getName().toLowerCase();
+                if(!(compName.contains("enhanced") ||
+                        compName.contains("lego"))){
+                    comps.add(c);
+                }
+            }
+            else if(c.getName().toLowerCase().contains(modus)){
                 comps.add(c);
             }
         }
@@ -171,15 +185,15 @@ public class JDBCDao implements Dao {
     }
 
     @Override
-    public int getBestTimeByMode(String modus) {
-        return getBestTimeByMode(modus, null);
+    public int getBestTimeByMode(String mode) {
+        return getBestTimeByMode(mode, null);
     }
 
     @Override
-    public int getBestTimeByMode(String modus, Bot bot) {
+    public int getBestTimeByMode(String mode, Bot bot) {
         int bestTime = Integer.MAX_VALUE;
 
-        List<Competition> comps = getCompsByModus(modus);
+        List<Competition> comps = getCompsByMode(mode);
 
         for(Competition c : comps) {
             int cUid = c.getUid();
@@ -211,7 +225,7 @@ public class JDBCDao implements Dao {
     public int getTries(String mode, Bot bot) {
         int tries = 0;
 
-        List<Competition> comps = getCompsByModus(mode);
+        List<Competition> comps = getCompsByMode(mode);
 
         for(Competition c : comps) {
             try {
@@ -233,5 +247,25 @@ public class JDBCDao implements Dao {
 
         return tries;
     }
+
+    @Override
+    public void updateCurrentMatch(int resultUid, int compUid) {
+        try {
+            PreparedStatement pst = conn.prepareStatement(
+                    "update comp " +
+                            "set " + COMP_CUR_MATCH + "= ?, " +
+                            COMP_CUR_MATCH_TIME + " = now() " +
+                            "where " + COMP_UID + " = ?"
+            );
+
+            pst.setInt(1, resultUid);
+            pst.setInt(2, compUid);
+            pst.executeUpdate();
+            pst.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

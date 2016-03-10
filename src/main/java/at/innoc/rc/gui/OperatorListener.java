@@ -265,17 +265,16 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 
         JButton btnStop = opFrame.getBtnStop();
 
-        JLabel lblTries = opFrame.getLblTries();
+        boolean abort = btnAbort.isSelected();
+        btnAbort.setEnabled(false);
 
-        if(btnAbort.isSelected()){
+        if(abort){
             onStop();
-            btnAbort.setEnabled(false);
             btnInvalidate.setEnabled(false);
             btnConfirm.setEnabled(false);
         }
         else if(btnInvalidate.isSelected()){
             if(running){
-                btnAbort.setEnabled(false);
                 btnInvalidate.setEnabled(false);
                 btnStop.setEnabled(true);
                 setStatusBackground(COLOR_INVALIDATED);
@@ -284,12 +283,13 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
                 blink(false);
             }
             saveResult(false);
-            onBotSelection();
+            onBotSelection(false);
         }
         else if(btnConfirm.isSelected()){
             stopTimer();
+
             saveResult(true);
-            onBotSelection();
+            onBotSelection(false);
             updateTrackRecord();
             blink(true);
         }
@@ -357,7 +357,7 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 
         String compNameLower = selectedComp.getName().toLowerCase();
 
-        mode = "";
+        mode = "normal";
         botLabel = BOT_BEST_NORMAL;
         trackLabel = TRACK_BEST_NORMAL;
 
@@ -399,12 +399,15 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
     @Override
     public void valueChanged(ListSelectionEvent e) {
         if(e.getValueIsAdjusting()) return;
-        onBotSelection();
+        onBotSelection(true);
     }
 
-    private void onBotSelection(){
+    private void onBotSelection(boolean real){
         JList<Bot> jlBots = opFrame.getJlBots();
         Bot selectedBot = jlBots.getSelectedValue();
+
+        JComboBox<Competition> cbComps = opFrame.getCbComps();
+        Competition selectedComp = (Competition) cbComps.getSelectedItem();
 
         if(selectedBot == null) return;
 
@@ -425,10 +428,15 @@ public class OperatorListener extends MouseAdapter implements ActionListener, Li
 
         }
         else{
-            lblTries.setText("" + db.getTries(mode, selectedBot));
+            int tries = db.getTries(mode, selectedBot);
+            lblTries.setText("" + tries);
             lblBotName.setText(selectedBot.getName());
             updateBotRecord();
             lblCountryShort.setText(selectedBot.getCountry());
+            if(real) {
+                Result result = new Result(6, selectedBot, selectedComp, tries);
+                db.saveResult(result);
+            }
         }
 
 
