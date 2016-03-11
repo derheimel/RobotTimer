@@ -24,15 +24,6 @@ public class RobotTimer {
                     e.printStackTrace();
                 }
 
-                int screen = 0;
-                if(args.length > 0) {
-                    try {
-                        screen = Integer.parseInt(args[0]);
-                    } catch (NumberFormatException e) {
-                        exit("Invalid argument: \"" + args[0] + "\"");
-                    }
-                }
-
                 GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 GraphicsDevice[] screens = ge.getScreenDevices();
                 Font freeride = null;
@@ -45,10 +36,18 @@ public class RobotTimer {
                     e.printStackTrace();
                 }
 
+                Properties props = getProperties();
+                int screen = 0;
+                String screenStr = props.getProperty("screen");
+                try {
+                    screen = Integer.parseInt(screenStr);
+                } catch (NumberFormatException e) {
+                    exit("Invalid argument: \"" + screenStr + "\"");
+                }
+
                 if(screen >= screens.length){
                     exit("Screen " + screen + " not found");
                 }
-                Properties props = getProperties();
 
                 DisplayFrame dFrame = new DisplayFrame(screens[screen], freeride);
                 OperatorFrame opFrame = new OperatorFrame(dFrame);
